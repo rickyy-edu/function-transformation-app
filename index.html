@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HKDSE Mathematics S5: Function Transformations Explorer</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Plotly.js CDN for responsive math graphing -->
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+  <!-- KaTeX core CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <!-- KaTeX Auto-Render Extension for automatic $...$ parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Inter & Fira Code Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .math-font {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Custom Slider Styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      border: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #0284c7;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -6px;
+      box-shadow: 0 2px 5px rgba(2, 132, 199, 0.4);
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #0369a1;
+    }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="h-full text-slate-800 antialiased flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-chart-line text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">HKDSE Math S5: Transformations of Functions</h1>
+          <p class="text-xs text-slate-500 font-medium flex items-center gap-1">
+            <span>Interactive Exploration of</span> 
+            <span class="text-brand-600 font-semibold">$y = a \cdot f(b(x - h)) + k$</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Header Quick Actions -->
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <button id="btn-mode-explore" onclick="switchMode('explore')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-brand-600 text-white shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-compass"></i>
+          <span>Explorer</span>
+        </button>
+        <button id="btn-mode-quiz" onclick="switchMode('quiz')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+          <i class="fa-solid fa-bullseye"></i>
+          <span>DSE Challenge</span>
+        </button>
+        <button onclick="toggleHelpModal()" class="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition" title="DSE Quick Summary & Guide">
+          <i class="fa-solid fa-circle-question text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout (Left: Visualization & Equation, Right: Controls & Table) -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Main Visualization Area (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-5">
+
+      <!-- Dynamic Equation Display Box -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-md border border-slate-800 relative overflow-hidden">
+        <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-brand-600/10 to-transparent pointer-events-none"></div>
+        
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-square-root-variable text-sky-400"></i>
+            Real-Time Transformed Algebraic Equation
+          </span>
+          <span class="text-[11px] bg-slate-800/80 text-sky-300 px-2 py-0.5 rounded-full border border-slate-700">Auto-Simplified Logic</span>
+        </div>
+
+        <!-- KaTeX Math Target Container -->
+        <div class="py-2 flex items-center justify-start overflow-x-auto min-h-[60px]">
+          <div id="katex-equation" class="text-xl sm:text-2xl text-slate-100 tracking-wide font-normal"></div>
+        </div>
+
+        <!-- Secondary Simplified Polynomial expansion text rendered via KaTeX -->
+        <div id="katex-expanded" class="text-xs text-slate-400 pt-2 border-t border-slate-700/60 mt-1 min-h-[24px] flex items-center gap-2"></div>
+      </div>
+
+      <!-- Interactive Graph Card -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex-1 flex flex-col">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center space-x-3">
+            <span class="flex items-center text-xs font-bold text-slate-600">
+              <span class="w-3 h-1 bg-slate-400 border border-dashed border-slate-500 inline-block mr-1.5"></span> Base $y = f(x)$
+            </span>
+            <span class="flex items-center text-xs font-bold text-brand-600">
+              <span class="w-3 h-1 bg-brand-600 inline-block mr-1.5 rounded"></span> Transformed Graph
+            </span>
+          </div>
+
+          <!-- Zoom Buttons Control Panel (Direct Button Zoom Only) -->
+          <div class="flex items-center space-x-1.5">
+            <button onclick="zoomGraph(0.8)" class="text-xs bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-md transition font-medium flex items-center gap-1" title="Zoom In">
+              <i class="fa-solid fa-magnifying-glass-plus"></i>
+              <span class="hidden sm:inline">Zoom In</span>
+            </button>
+            <button onclick="zoomGraph(1.25)" class="text-xs bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-md transition font-medium flex items-center gap-1" title="Zoom Out">
+              <i class="fa-solid fa-magnifying-glass-minus"></i>
+              <span class="hidden sm:inline">Zoom Out</span>
+            </button>
+            <button onclick="resetGraphView()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1 rounded-md transition font-medium flex items-center gap-1" title="Reset View">
+              <i class="fa-solid fa-expand"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Plotly Graph Canvas Container -->
+        <div id="graph-container" class="w-full flex-1 min-h-[380px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100"></div>
+
+        <!-- DSE Transformation Breakdown Summary rendered with KaTeX -->
+        <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div class="flex items-start gap-2">
+            <i class="fa-solid fa-arrows-left-right text-brand-500 mt-0.5"></i>
+            <div>
+              <span class="font-bold text-slate-900 block">Horizontal Transformation:</span>
+              <span id="summary-horizontal" class="text-slate-600">No horizontal shift or scaling.</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <i class="fa-solid fa-arrows-up-down text-emerald-500 mt-0.5"></i>
+            <div>
+              <span class="font-bold text-slate-900 block">Vertical Transformation:</span>
+              <span id="summary-vertical" class="text-slate-600">No vertical shift or scaling.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Control Panel (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-5">
+
+      <!-- Base Function Selection Card -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <i class="fa-solid fa-square-root-variable text-brand-500"></i>
+            1. Select Base Function $f(x)$
+          </label>
+          
+          <!-- Angle Unit Toggle (Trig Functions only) -->
+          <div id="angle-unit-container" class="hidden items-center bg-slate-100 p-0.5 rounded-lg text-xs font-medium">
+            <button id="unit-deg" onclick="setAngleUnit('deg')" class="px-2 py-1 rounded-md bg-white shadow-xs text-brand-600 font-semibold">Deg (°)</button>
+            <button id="unit-rad" onclick="setAngleUnit('rad')" class="px-2 py-1 rounded-md text-slate-600 hover:text-slate-900">Rad</button>
+          </div>
+        </div>
+
+        <select id="base-function-select" onchange="onFunctionChange()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-2.5 font-semibold transition cursor-pointer">
+          <option value="linear">Linear Function: f(x) = x</option>
+          <option value="linear_shift">Linear Function: f(x) = ½x + 1</option>
+          <option value="quadratic" selected>Quadratic Function: f(x) = x²</option>
+          <option value="quadratic_poly">Quadratic Function: f(x) = x² + 2x - 3</option>
+          <option value="cubic">Degree-3 Polynomial (Cubic): f(x) = x³</option>
+          <option value="sine">Sine Function: f(x) = sin(x)</option>
+          <option value="cosine">Cosine Function: f(x) = cos(x)</option>
+          <option value="tangent">Tangent Function: f(x) = tan(x)</option>
+        </select>
+
+        <!-- Presets Bar -->
+        <div class="mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">Quick Presets</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="applyPreset('reset')" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium transition">
+              <i class="fa-solid fa-rotate-left text-slate-400 mr-1"></i>Reset
+            </button>
+            <button onclick="applyPreset('reflect_x')" class="px-2.5 py-1 text-xs bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-md font-medium transition">
+              Reflect $x$-axis ($a = -1$)
+            </button>
+            <button onclick="applyPreset('reflect_y')" class="px-2.5 py-1 text-xs bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-md font-medium transition">
+              Reflect $y$-axis ($b = -1$)
+            </button>
+            <button onclick="applyPreset('dse_classic')" class="px-2.5 py-1 text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-md font-medium transition">
+              DSE: $-2f(x-3)+1$
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact Transformation Sliders Card (Ordered: k -> h -> a -> b) -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <i class="fa-solid fa-sliders text-brand-500"></i>
+            2. Transformation Constants
+          </label>
+          <span class="text-xs text-slate-500 font-semibold">$y = a \cdot f(b(x - h)) + k$</span>
+        </div>
+
+        <div class="space-y-2 my-1">
+
+          <!-- 1. Vertical Translation (k) -->
+          <div class="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                Vertical Translation ($k$)
+              </span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="num-k" value="0" step="1" onchange="syncInputToSlider('k', this.value)" class="w-12 text-center text-xs font-bold bg-white border border-slate-300 rounded-md py-0.5 px-1 focus:ring-1 focus:ring-brand-500">
+                <button onclick="resetParameter('k')" class="text-slate-400 hover:text-slate-600 text-xs px-1" title="Reset k = 0"><i class="fa-solid fa-arrow-rotate-right"></i></button>
+              </div>
+            </div>
+            <input type="range" id="slider-k" min="-10" max="10" step="1" value="0" oninput="onSliderInput('k', this.value)">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-medium">
+              <span>Down ($-10$)</span>
+              <span>$0$</span>
+              <span>Up ($+10$)</span>
+            </div>
+          </div>
+
+          <!-- 2. Horizontal Translation (h) -->
+          <div class="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                Horizontal Translation ($h$)
+              </span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="num-h" value="0" step="1" onchange="syncInputToSlider('h', this.value)" class="w-12 text-center text-xs font-bold bg-white border border-slate-300 rounded-md py-0.5 px-1 focus:ring-1 focus:ring-brand-500">
+                <button onclick="resetParameter('h')" class="text-slate-400 hover:text-slate-600 text-xs px-1" title="Reset h = 0"><i class="fa-solid fa-arrow-rotate-right"></i></button>
+              </div>
+            </div>
+            <input type="range" id="slider-h" min="-10" max="10" step="1" value="0" oninput="onSliderInput('h', this.value)">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-medium">
+              <span>Left ($-10$)</span>
+              <span>$0$</span>
+              <span>Right ($+10$)</span>
+            </div>
+          </div>
+
+          <!-- 3. Vertical Scaling & Reflection (a) -->
+          <div class="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                Vertical Scaling & Reflection ($a$)
+              </span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="num-a" value="1" step="1" onchange="syncInputToSlider('a', this.value)" class="w-12 text-center text-xs font-bold bg-white border border-slate-300 rounded-md py-0.5 px-1 focus:ring-1 focus:ring-brand-500">
+                <button onclick="resetParameter('a')" class="text-slate-400 hover:text-slate-600 text-xs px-1" title="Reset a = 1"><i class="fa-solid fa-arrow-rotate-right"></i></button>
+              </div>
+            </div>
+            <input type="range" id="slider-a" min="-5" max="5" step="1" value="1" oninput="onSliderInput('a', this.value)">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-medium">
+              <span>Flip ($-5$)</span>
+              <span>Identity ($1$)</span>
+              <span>Stretch ($5$)</span>
+            </div>
+          </div>
+
+          <!-- 4. Horizontal Scaling & Reflection (b) -->
+          <div class="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Horizontal Scaling & Reflection ($b$)
+              </span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="num-b" value="1" step="1" onchange="syncInputToSlider('b', this.value)" class="w-12 text-center text-xs font-bold bg-white border border-slate-300 rounded-md py-0.5 px-1 focus:ring-1 focus:ring-brand-500">
+                <button onclick="resetParameter('b')" class="text-slate-400 hover:text-slate-600 text-xs px-1" title="Reset b = 1"><i class="fa-solid fa-arrow-rotate-right"></i></button>
+              </div>
+            </div>
+            <input type="range" id="slider-b" min="-5" max="5" step="1" value="1" oninput="onSliderInput('b', this.value)">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-medium">
+              <span>Flip ($-5$)</span>
+              <span>Identity ($1$)</span>
+              <span>Compress ($5$)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Toggles Section -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-600">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-show-base" checked onchange="updateVisualization()" class="rounded text-brand-600 focus:ring-brand-500 h-4 w-4">
+            <span>Show Base Graph $y = f(x)$</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-show-points" checked onchange="updateVisualization()" class="rounded text-brand-600 focus:ring-brand-500 h-4 w-4">
+            <span>Key Reference Points</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Coordinate Pairs Comparison Table Card -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2">
+            <div class="w-6 h-6 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-xs">
+              <i class="fa-solid fa-table-list text-xs"></i>
+            </div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+              3. Coordinate Pairs Table
+            </h3>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">$x' = \frac{x}{b} + h \;\big|\; y' = a\cdot y + k$</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-center text-slate-700 border-collapse">
+            <thead class="text-[10px] uppercase bg-slate-50 text-slate-500 border-b border-slate-200">
+              <tr>
+                <th class="py-1.5 px-2 text-left font-semibold">Pt</th>
+                <th class="py-1.5 px-1 font-semibold bg-slate-100/80 text-slate-700">Original $x$</th>
+                <th class="py-1.5 px-1 font-semibold bg-brand-50 text-brand-800">New $x'$</th>
+                <th class="py-1.5 px-1 font-semibold bg-slate-100/80 text-slate-700 border-r border-slate-200">Original $y$</th>
+                <th class="py-1.5 px-1 font-semibold bg-brand-50 text-brand-800">New $y'$</th>
+              </tr>
+            </thead>
+            <tbody id="coordinate-table-body" class="divide-y divide-slate-100 font-mono text-[11px]">
+              <!-- Dynamic Rows inserted via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Practice / Quiz Modal or Overlay Panel -->
+  <div id="quiz-panel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative">
+      <button onclick="switchMode('explore')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-md">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">HKDSE Transformation Challenge</h3>
+          <p class="text-xs text-slate-500">Match the target graph by adjusting parameters or predicting values!</p>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-xs text-amber-900">
+        <p class="font-semibold mb-1"><i class="fa-solid fa-lightbulb mr-1"></i> Your Goal:</p>
+        <p>A secret transformed curve (Gold Dotted) has been generated. Move the sliders in the background until your blue curve completely overlaps the target curve!</p>
+      </div>
+
+      <!-- Solution Display Container -->
+      <div id="quiz-solution-box" class="hidden mb-4 p-3 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 text-center">
+        <span class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider block mb-1">Target Equation Solution</span>
+        <div id="quiz-solution-katex" class="text-sm py-1"></div>
+      </div>
+
+      <div class="flex justify-between items-center py-3 border-y border-slate-100 my-4 text-sm font-semibold">
+        <span class="text-slate-600">Current Overlap Accuracy:</span>
+        <span id="quiz-match-score" class="text-brand-600 font-bold text-lg">0%</span>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="generateQuizTarget()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition">
+          <i class="fa-solid fa-shuffle mr-1"></i> New Target
+        </button>
+        <button onclick="revealQuizSolution()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-sm">
+          <i class="fa-solid fa-key mr-1"></i> Reveal Equation
+        </button>
+        <button onclick="switchMode('explore')" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-sm">
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help & DSE Strategy Modal -->
+  <div id="help-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+          <i class="fa-solid fa-graduation-cap text-brand-600"></i>
+          HKDSE S5 Function Transformation Notes
+        </h3>
+        <button onclick="toggleHelpModal()" class="text-slate-400 hover:text-slate-700 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 my-4 text-xs text-slate-600 leading-relaxed">
+        <div class="bg-brand-50 p-3.5 rounded-xl border border-brand-100 text-brand-900">
+          <h4 class="font-bold text-sm mb-1 text-brand-700">Universal Transformation Formula</h4>
+          <p class="text-sm font-semibold mb-2">$y = a \cdot f( b(x - h) ) + k$</p>
+          <ul class="list-disc pl-4 space-y-1">
+            <li><strong>Vertical Operations ($a, k$):</strong> Affect $y$-coordinates directly. Order: Stretch/Reflect ($a$), then Translate ($k$).</li>
+            <li><strong>Horizontal Operations ($b, h$):</strong> Affect $x$-coordinates inversely. Inside $b(x - h)$, operation order on $x$: Translate right by $h$, then divide by $b$.</li>
+          </ul>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="border border-slate-200 rounded-xl p-3">
+            <span class="font-bold text-slate-800 text-xs block mb-1">Constant '$a$' (Vertical Scaling)</span>
+            <p>• $|a| > 1$: Stretch vertically by factor $|a|$</p>
+            <p>• $0 < |a| < 1$: Compress vertically by factor $|a|$</p>
+            <p>• $a < 0$: Reflect in $x$-axis</p>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl p-3">
+            <span class="font-bold text-slate-800 text-xs block mb-1">Constant '$b$' (Horizontal Scaling)</span>
+            <p>• $|b| > 1$: Compress horizontally by factor $\frac{1}{|b|}$</p>
+            <p>• $0 < |b| < 1$: Stretch horizontally by factor $\frac{1}{|b|}$</p>
+            <p>• $b < 0$: Reflect in $y$-axis</p>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl p-3">
+            <span class="font-bold text-slate-800 text-xs block mb-1">Constant '$h$' (Horizontal Shift)</span>
+            <p>• $h > 0$: Shift Right by $h$ units</p>
+            <p>• $h < 0$: Shift Left by $|h|$ units</p>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl p-3">
+            <span class="font-bold text-slate-800 text-xs block mb-1">Constant '$k$' (Vertical Shift)</span>
+            <p>• $k > 0$: Shift Up by $k$ units</p>
+            <p>• $k < 0$: Shift Down by $|k|$ units</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 text-right">
+        <button onclick="toggleHelpModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-5 py-2 rounded-xl text-xs transition">
+          Got it!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic Block -->
+  <script>
+    // Core Application State
+    const state = {
+      baseFunc: 'quadratic', // 'linear', 'quadratic', 'cubic', 'sine', 'cosine', 'tangent'
+      a: 1.0,
+      b: 1.0,
+      h: 0.0,
+      k: 0.0,
+      angleUnit: 'deg', // 'deg' or 'rad'
+      showBase: true,
+      showPoints: true,
+      mode: 'explore', // 'explore' or 'quiz'
+      quizTarget: null,
+      viewXRange: [-10, 10],
+      viewYRange: [-10, 10],
+      viewRevision: 0
+    };
+
+    // Helper to calculate default axis ranges per function
+    function getDefaultViewRanges(baseFunc, angleUnit) {
+      if (['sine', 'cosine', 'tangent'].includes(baseFunc)) {
+        if (angleUnit === 'deg') {
+          return { x: [-360, 360], y: [-5, 5] };
+        } else {
+          return { x: [-2 * Math.PI, 2 * Math.PI], y: [-5, 5] };
+        }
+      }
+      return { x: [-10, 10], y: [-10, 10] };
+    }
+
+    // Reference Key Points for each base function
+    // P3 for quadratic fixed to (-1, 1)
+    const baseKeyPoints = {
+      linear: [{x: 0, y: 0}, {x: 1, y: 1}, {x: -1, y: -1}],
+      linear_shift: [{x: 0, y: 1, label: 'y-intercept'}, {x: 2, y: 2}, {x: -2, y: 0, label: 'x-intercept'}],
+      quadratic: [{x: 0, y: 0, label: 'Vertex'}, {x: 1, y: 1}, {x: -1, y: 1}, {x: 2, y: 4}],
+      quadratic_poly: [{x: -1, y: -4, label: 'Vertex'}, {x: 0, y: -3, label: 'y-intercept'}, {x: 1, y: 0, label: 'x-intercept'}, {x: -3, y: 0, label: 'x-intercept'}],
+      cubic: [{x: 0, y: 0, label: 'Inflection'}, {x: 1, y: 1}, {x: -1, y: -1}],
+      sine: {
+        deg: [{x: 0, y: 0}, {x: 90, y: 1, label: 'Max'}, {x: 180, y: 0}, {x: 270, y: -1, label: 'Min'}],
+        rad: [{x: 0, y: 0}, {x: Math.PI/2, y: 1, label: 'Max'}, {x: Math.PI, y: 0}, {x: 3*Math.PI/2, y: -1, label: 'Min'}]
+      },
+      cosine: {
+        deg: [{x: 0, y: 1, label: 'Max'}, {x: 90, y: 0}, {x: 180, y: -1, label: 'Min'}, {x: 270, y: 0}],
+        rad: [{x: 0, y: 1, label: 'Max'}, {x: Math.PI/2, y: 0}, {x: Math.PI, y: -1, label: 'Min'}, {x: 3*Math.PI/2, y: 0}]
+      },
+      tangent: {
+        deg: [{x: 0, y: 0}, {x: 45, y: 1}, {x: -45, y: -1}],
+        rad: [{x: 0, y: 0}, {x: Math.PI/4, y: 1}, {x: -Math.PI/4, y: -1}]
+      }
+    };
+
+    // Mathematical Base Function Evaluator
+    function evalBaseFunc(x, funcName, unit = 'deg') {
+      switch (funcName) {
+        case 'linear': return x;
+        case 'linear_shift': return 0.5 * x + 1;
+        case 'quadratic': return x * x;
+        case 'quadratic_poly': return x * x + 2 * x - 3;
+        case 'cubic': return x * x * x;
+        case 'sine': {
+          const rad = (unit === 'deg') ? (x * Math.PI / 180) : x;
+          return Math.sin(rad);
+        }
+        case 'cosine': {
+          const rad = (unit === 'deg') ? (x * Math.PI / 180) : x;
+          return Math.cos(rad);
+        }
+        case 'tangent': {
+          const rad = (unit === 'deg') ? (x * Math.PI / 180) : x;
+          const cosVal = Math.cos(rad);
+          if (Math.abs(cosVal) < 1e-4) return null;
+          const val = Math.tan(rad);
+          return Math.abs(val) > 20 ? null : val;
+        }
+        default: return x;
+      }
+    }
+
+    // Transformed Function Evaluator: y = a * f( b(x - h) ) + k
+    function evalTransformedFunc(x, params = state) {
+      const { a, b, h, k, baseFunc, angleUnit } = params;
+      const innerX = b * (x - h);
+      const baseVal = evalBaseFunc(innerX, baseFunc, angleUnit);
+      if (baseVal === null) return null;
+      return a * baseVal + k;
+    }
+
+    // Helper to format float numbers concisely
+    function fmtNum(n) {
+      const rounded = Math.round(n * 100) / 100;
+      return rounded.toString();
+    }
+
+    // Generate Simplified Clean LaTeX Expression
+    function generateLaTeX(params = state) {
+      const { a, b, h, k, baseFunc } = params;
+
+      // Outer 'a' coefficient string logic
+      let aStr = "";
+      if (a === -1) aStr = "-";
+      else if (a !== 1) aStr = fmtNum(a);
+
+      // Inner x term logic inside b(x - h)
+      let innerStr = "";
+      const hAbs = fmtNum(Math.abs(h));
+      
+      let xShiftStr = "";
+      if (h === 0) {
+        xShiftStr = "x";
+      } else if (h > 0) {
+        xShiftStr = `(x - ${hAbs})`;
+      } else {
+        xShiftStr = `(x + ${hAbs})`;
+      }
+
+      // Applying 'b' multiplier
+      if (b === 1) {
+        innerStr = xShiftStr;
+      } else if (b === -1) {
+        innerStr = h === 0 ? "-x" : `-${xShiftStr}`;
+      } else {
+        const bStr = fmtNum(b);
+        innerStr = h === 0 ? `${bStr}x` : `${bStr}${xShiftStr}`;
+      }
+
+      // Outer 'k' constant string logic
+      let kStr = "";
+      if (k > 0) kStr = ` + ${fmtNum(k)}`;
+      else if (k < 0) kStr = ` - ${fmtNum(Math.abs(k))}`;
+
+      // Construct Function specific notation
+      let mainLatex = "";
+
+      switch (baseFunc) {
+        case 'linear': {
+          if (a === 1 && b === 1 && h === 0 && k === 0) {
+            mainLatex = "y = x";
+          } else {
+            mainLatex = `y = ${aStr}${innerStr}${kStr}`;
+          }
+          break;
+        }
+        case 'linear_shift': {
+          if (a === 1 && b === 1 && h === 0 && k === 0) {
+            mainLatex = "y = \\frac{1}{2}x + 1";
+          } else {
+            mainLatex = `y = ${aStr}\\left[ \\frac{1}{2}\\left(${innerStr}\\right) + 1 \\right]${kStr}`;
+          }
+          break;
+        }
+        case 'quadratic': {
+          if (a === 1 && b === 1 && h === 0 && k === 0) {
+            mainLatex = "y = x^2";
+          } else {
+            if (b === 1) {
+              const term = h === 0 ? "x^2" : `(x ${h > 0 ? '-' : '+'} ${hAbs})^2`;
+              mainLatex = `y = ${aStr}${term}${kStr}`;
+            } else {
+              mainLatex = `y = ${aStr} \\left[ ${innerStr} \\right]^2${kStr}`;
+            }
+          }
+          break;
+        }
+        case 'quadratic_poly': {
+          if (a === 1 && b === 1 && h === 0 && k === 0) {
+            mainLatex = "y = x^2 + 2x - 3";
+          } else {
+            mainLatex = `y = ${aStr}\\left[ \\left(${innerStr}\\right)^2 + 2\\left(${innerStr}\\right) - 3 \\right]${kStr}`;
+          }
+          break;
+        }
+        case 'cubic': {
+          if (a === 1 && b === 1 && h === 0 && k === 0) {
+            mainLatex = "y = x^3";
+          } else {
+            if (b === 1) {
+              const term = h === 0 ? "x^3" : `(x ${h > 0 ? '-' : '+'} ${hAbs})^3`;
+              mainLatex = `y = ${aStr}${term}${kStr}`;
+            } else {
+              mainLatex = `y = ${aStr} \\left[ ${innerStr} \\right]^3${kStr}`;
+            }
+          }
+          break;
+        }
+        case 'sine': {
+          mainLatex = `y = ${aStr}\\sin\\left(${innerStr}\\right)${kStr}`;
+          if (a === 1 && b === 1 && h === 0 && k === 0) mainLatex = "y = \\sin(x)";
+          break;
+        }
+        case 'cosine': {
+          mainLatex = `y = ${aStr}\\cos\\left(${innerStr}\\right)${kStr}`;
+          if (a === 1 && b === 1 && h === 0 && k === 0) mainLatex = "y = \\cos(x)";
+          break;
+        }
+        case 'tangent': {
+          mainLatex = `y = ${aStr}\\tan\\left(${innerStr}\\right)${kStr}`;
+          if (a === 1 && b === 1 && h === 0 && k === 0) mainLatex = "y = \\tan(x)";
+          break;
+        }
+      }
+
+      return mainLatex;
+    }
+
+    // Secondary expanded expression calculation returned as pure LaTeX
+    function getExpandedLatex(params = state) {
+      const { a, b, h, k, baseFunc } = params;
+      if (baseFunc === 'quadratic') {
+        const A = Math.round(a * b * b * 100) / 100;
+        const B = Math.round(-2 * a * b * b * h * 100) / 100;
+        const C = Math.round((a * b * b * h * h + k) * 100) / 100;
+
+        let res = "y = ";
+        if (A === 1) res += "x^2";
+        else if (A === -1) res += "-x^2";
+        else if (A !== 0) res += `${A}x^2`;
+
+        if (B > 0) res += ` + ${B}x`;
+        else if (B < 0) res += ` - ${Math.abs(B)}x`;
+
+        if (C > 0) res += ` + ${C}`;
+        else if (C < 0) res += ` - ${Math.abs(C)}`;
+
+        return res;
+      } else if (baseFunc === 'linear_shift') {
+        const M = Math.round(0.5 * a * b * 100) / 100;
+        const C = Math.round((-0.5 * a * b * h + a + k) * 100) / 100;
+
+        let res = "y = ";
+        if (M === 1) res += "x";
+        else if (M === -1) res += "-x";
+        else if (M !== 0) res += `${M}x`;
+
+        if (C > 0) res += (M !== 0 ? ` + ${C}` : `${C}`);
+        else if (C < 0) res += (M !== 0 ? ` - ${Math.abs(C)}` : `-${Math.abs(C)}`);
+        if (M === 0 && C === 0) res += "0";
+
+        return res;
+      } else if (baseFunc === 'quadratic_poly') {
+        const A = Math.round(a * b * b * 100) / 100;
+        const B = Math.round(a * (2 * b - 2 * b * b * h) * 100) / 100;
+        const C = Math.round((a * (b * b * h * h - 2 * b * h - 3) + k) * 100) / 100;
+
+        let res = "y = ";
+        if (A === 1) res += "x^2";
+        else if (A === -1) res += "-x^2";
+        else if (A !== 0) res += `${A}x^2`;
+
+        if (B > 0) res += (A !== 0 ? ` + ${B}x` : `${B}x`);
+        else if (B < 0) res += (A !== 0 ? ` - ${Math.abs(B)}x` : `-${Math.abs(B)}x`);
+
+        if (C > 0) res += ` + ${C}`;
+        else if (C < 0) res += ` - ${Math.abs(C)}`;
+
+        return res;
+      }
+      return "";
+    }
+
+    // Initialize & Update Visualization
+    function updateVisualization() {
+      // 1. Render Primary KaTeX Equations
+      const latexStr = generateLaTeX();
+      const katexElem = document.getElementById('katex-equation');
+      katex.render(latexStr, katexElem, { displayMode: true, throwOnError: false });
+
+      // 2. Render Secondary Expanded Form with KaTeX
+      const expandedLatex = getExpandedLatex();
+      const katexExpandedElem = document.getElementById('katex-expanded');
+      if (expandedLatex) {
+        katexExpandedElem.innerHTML = `<span class="text-slate-400 font-medium">Expanded Form:</span> <span id="expanded-math-target"></span>`;
+        katex.render(expandedLatex, document.getElementById('expanded-math-target'), { displayMode: false, throwOnError: false });
+      } else {
+        katexExpandedElem.innerHTML = "";
+      }
+
+      // 3. Compute Extended Domain Range (Sampling across 3x view span)
+      const xSpan = state.viewXRange[1] - state.viewXRange[0];
+      const xMin = state.viewXRange[0] - xSpan * 1.5;
+      const xMax = state.viewXRange[1] + xSpan * 1.5;
+      const numPoints = 1200;
+
+      const step = (xMax - xMin) / numPoints;
+      const xVals = [];
+      const yBaseVals = [];
+      const yTransVals = [];
+
+      for (let i = 0; i <= numPoints; i++) {
+        const x = xMin + i * step;
+        xVals.push(x);
+        yBaseVals.push(evalBaseFunc(x, state.baseFunc, state.angleUnit));
+        yTransVals.push(evalTransformedFunc(x, state));
+      }
+
+      // 4. Prepare Data Traces
+      const traces = [];
+
+      // Base Graph Trace
+      if (state.showBase) {
+        traces.push({
+          x: xVals,
+          y: yBaseVals,
+          type: 'scatter',
+          mode: 'lines',
+          name: 'Base Graph',
+          line: { color: '#94a3b8', width: 2, dash: 'dash' },
+          hoverinfo: 'x+y'
+        });
+      }
+
+      // Transformed Graph Trace
+      traces.push({
+        x: xVals,
+        y: yTransVals,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Transformed Graph',
+        line: { color: '#0284c7', width: 3.5 },
+        hoverinfo: 'x+y'
+      });
+
+      // Target Graph Trace (Quiz Mode)
+      if (state.mode === 'quiz' && state.quizTarget) {
+        const yQuizVals = xVals.map(x => evalTransformedFunc(x, state.quizTarget));
+        traces.push({
+          x: xVals,
+          y: yQuizVals,
+          type: 'scatter',
+          mode: 'lines',
+          name: 'Target Graph',
+          line: { color: '#f59e0b', width: 3, dash: 'dot' }
+        });
+      }
+
+      // Key Reference Points Markers
+      if (state.showPoints) {
+        let keyList = baseKeyPoints[state.baseFunc];
+        if (['sine', 'cosine', 'tangent'].includes(state.baseFunc)) {
+          keyList = keyList[state.angleUnit];
+        }
+
+        if (keyList && Array.isArray(keyList)) {
+          const ptX = [];
+          const ptY = [];
+
+          keyList.forEach(pt => {
+            const newX = (pt.x / state.b) + state.h;
+            const newY = state.a * pt.y + state.k;
+            ptX.push(newX);
+            ptY.push(newY);
+          });
+
+          traces.push({
+            x: ptX,
+            y: ptY,
+            type: 'scatter',
+            mode: 'markers+text',
+            name: 'Key Points',
+            marker: { color: '#e11d48', size: 9, symbol: 'circle' },
+            text: ptX.map((_, idx) => `P${idx+1}`),
+            textposition: 'top center',
+            hoverinfo: 'text'
+          });
+        }
+      }
+
+      // Layout Configuration with locked interactive controls (zoom only via buttons)
+      const layout = {
+        uirevision: state.viewRevision,
+        margin: { l: 45, r: 25, t: 25, b: 40 },
+        autosize: true,
+        showlegend: false,
+        hovermode: 'closest',
+        dragmode: false,
+        xaxis: {
+          title: state.angleUnit === 'deg' && ['sine', 'cosine', 'tangent'].includes(state.baseFunc) ? 'x (degrees)' : 'x',
+          zeroline: true,
+          zerolinecolor: '#475569',
+          zerolinewidth: 1.5,
+          gridcolor: '#f1f5f9',
+          tickfont: { size: 11, color: '#64748b' },
+          range: [...state.viewXRange],
+          fixedrange: true
+        },
+        yaxis: {
+          title: 'y',
+          zeroline: true,
+          zerolinecolor: '#475569',
+          zerolinewidth: 1.5,
+          gridcolor: '#f1f5f9',
+          tickfont: { size: 11, color: '#64748b' },
+          range: [...state.viewYRange],
+          fixedrange: true
+        }
+      };
+
+      const config = {
+        responsive: true,
+        displayModeBar: false,
+        scrollZoom: false
+      };
+
+      Plotly.react('graph-container', traces, layout, config);
+
+      // 5. Update Transformation Summaries
+      updateSummaries();
+
+      // 6. Update Coordinate Comparison Table
+      updateCoordinateTable();
+
+      // 7. Update Quiz Accuracy if active
+      if (state.mode === 'quiz') calculateQuizAccuracy();
+
+      // 8. Auto-render KaTeX math elements across dynamic text blocks
+      renderKaTeXMathInDOM();
+    }
+
+    // Dynamic Table Generator for (Original x, New x, Original y, New y)
+    function updateCoordinateTable() {
+      const tbody = document.getElementById('coordinate-table-body');
+      if (!tbody) return;
+
+      let keyPoints = [];
+      if (['sine', 'cosine', 'tangent'].includes(state.baseFunc)) {
+        keyPoints = baseKeyPoints[state.baseFunc][state.angleUnit] || [];
+      } else if (baseKeyPoints[state.baseFunc]) {
+        keyPoints = baseKeyPoints[state.baseFunc];
+      } else {
+        const stdX = [-2, -1, 0, 1, 2];
+        keyPoints = stdX.map(x => {
+          const y = evalBaseFunc(x, state.baseFunc);
+          let label = undefined;
+          if (x === 0 && state.baseFunc === 'quadratic') label = 'Vertex';
+          if (x === 0 && state.baseFunc === 'cubic') label = 'Inflection';
+          return { x, y, label };
+        });
+      }
+
+      let html = '';
+      keyPoints.forEach((pt, idx) => {
+        const origX = pt.x;
+        const origY = pt.y;
+
+        if (origY === null || isNaN(origY)) return;
+
+        // Formula: x' = x/b + h,  y' = a * f(x) + k
+        const newX = (origX / state.b) + state.h;
+        const newY = state.a * origY + state.k;
+
+        const ptName = pt.label ? pt.label : `P${idx+1}`;
+        const unitSuffix = (['sine', 'cosine', 'tangent'].includes(state.baseFunc) && state.angleUnit === 'deg') ? '°' : '';
+
+        const origXStr = `${fmtNum(origX)}${unitSuffix}`;
+        const origYStr = fmtNum(origY);
+        const newXStr = `${fmtNum(newX)}${unitSuffix}`;
+        const newYStr = fmtNum(newY);
+
+        html += `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-1.5 px-2 text-left font-medium text-slate-800 font-sans text-[11px] truncate max-w-[70px]" title="${ptName}">${ptName}</td>
+            <td class="py-1.5 px-1 bg-slate-50/60 text-slate-700">$${origXStr}$</td>
+            <td class="py-1.5 px-1 bg-brand-50/40 text-brand-700 font-semibold">$${newXStr}$</td>
+            <td class="py-1.5 px-1 bg-slate-50/60 text-slate-700 border-r border-slate-200/80">$${origYStr}$</td>
+            <td class="py-1.5 px-1 bg-brand-50/40 text-brand-700 font-bold">$${newYStr}$</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    // Breakdown Text Descriptions
+    function updateSummaries() {
+      const elemH = document.getElementById('summary-horizontal');
+      const elemV = document.getElementById('summary-vertical');
+
+      let hText = [];
+      if (Math.abs(state.b) !== 1) {
+        const factor = fmtNum(1 / Math.abs(state.b));
+        hText.push(`Horizontal ${Math.abs(state.b) > 1 ? 'compression' : 'stretch'} by factor $${factor}$`);
+      }
+      if (state.b < 0) hText.push("Reflected in $y$-axis");
+      if (state.h !== 0) hText.push(`Shifted <strong>${state.h > 0 ? 'Right' : 'Left'}</strong> by $${Math.abs(state.h)}$ units`);
+      elemH.innerHTML = hText.length > 0 ? hText.join(", ") : "No horizontal shift or scaling.";
+
+      let vText = [];
+      if (Math.abs(state.a) !== 1) {
+        vText.push(`Vertical ${Math.abs(state.a) > 1 ? 'stretch' : 'compression'} by factor $${Math.abs(state.a)}$`);
+      }
+      if (state.a < 0) vText.push("Reflected in $x$-axis");
+      if (state.k !== 0) vText.push(`Shifted <strong>${state.k > 0 ? 'Up' : 'Down'}</strong> by $${Math.abs(state.k)}$ units`);
+      elemV.innerHTML = vText.length > 0 ? vText.join(", ") : "No vertical shift or scaling.";
+    }
+
+    // Input Sync Handlers
+    function onSliderInput(param, val) {
+      state[param] = Math.round(parseFloat(val));
+      document.getElementById(`num-${param}`).value = state[param];
+      updateVisualization();
+    }
+
+    function syncInputToSlider(param, val) {
+      let num = Math.round(parseFloat(val));
+      if (isNaN(num)) num = (param === 'a' || param === 'b') ? 1 : 0;
+      state[param] = num;
+      document.getElementById(`slider-${param}`).value = num;
+      document.getElementById(`num-${param}`).value = num;
+      updateVisualization();
+    }
+
+    function resetParameter(param) {
+      const defaultVal = (param === 'a' || param === 'b') ? 1 : 0;
+      state[param] = defaultVal;
+      document.getElementById(`slider-${param}`).value = defaultVal;
+      document.getElementById(`num-${param}`).value = defaultVal;
+      updateVisualization();
+    }
+
+    function onFunctionChange() {
+      state.baseFunc = document.getElementById('base-function-select').value;
+      const angleContainer = document.getElementById('angle-unit-container');
+      if (['sine', 'cosine', 'tangent'].includes(state.baseFunc)) {
+        angleContainer.classList.remove('hidden');
+        angleContainer.classList.add('flex');
+      } else {
+        angleContainer.classList.add('hidden');
+        angleContainer.classList.remove('flex');
+      }
+      
+      const def = getDefaultViewRanges(state.baseFunc, state.angleUnit);
+      state.viewXRange = [...def.x];
+      state.viewYRange = [...def.y];
+      state.viewRevision++;
+      updateVisualization();
+    }
+
+    function setAngleUnit(unit) {
+      state.angleUnit = unit;
+      document.getElementById('unit-deg').className = unit === 'deg' ? 'px-2 py-1 rounded-md bg-white shadow-xs text-brand-600 font-semibold' : 'px-2 py-1 rounded-md text-slate-600 hover:text-slate-900';
+      document.getElementById('unit-rad').className = unit === 'rad' ? 'px-2 py-1 rounded-md bg-white shadow-xs text-brand-600 font-semibold' : 'px-2 py-1 rounded-md text-slate-600 hover:text-slate-900';
+      
+      const def = getDefaultViewRanges(state.baseFunc, state.angleUnit);
+      state.viewXRange = [...def.x];
+      state.viewYRange = [...def.y];
+      state.viewRevision++;
+      updateVisualization();
+    }
+
+    function applyPreset(presetType) {
+      if (presetType === 'reset') {
+        state.a = 1; state.b = 1; state.h = 0; state.k = 0;
+        const def = getDefaultViewRanges(state.baseFunc, state.angleUnit);
+        state.viewXRange = [...def.x];
+        state.viewYRange = [...def.y];
+        state.viewRevision++;
+      } else if (presetType === 'reflect_x') {
+        state.a = -1; state.b = 1; state.h = 0; state.k = 0;
+      } else if (presetType === 'reflect_y') {
+        state.a = 1; state.b = -1; state.h = 0; state.k = 0;
+      } else if (presetType === 'dse_classic') {
+        state.a = -2; state.b = 1; state.h = 3; state.k = 1;
+      }
+
+      ['a', 'b', 'h', 'k'].forEach(p => {
+        document.getElementById(`slider-${p}`).value = state[p];
+        document.getElementById(`num-${p}`).value = state[p];
+      });
+      updateVisualization();
+    }
+
+    function resetGraphView() {
+      const def = getDefaultViewRanges(state.baseFunc, state.angleUnit);
+      state.viewXRange = [...def.x];
+      state.viewYRange = [...def.y];
+      state.viewRevision++;
+      updateVisualization();
+    }
+
+    function zoomGraph(factor) {
+      const xCenter = (state.viewXRange[0] + state.viewXRange[1]) / 2;
+      const xHalf = ((state.viewXRange[1] - state.viewXRange[0]) / 2) * factor;
+      const yCenter = (state.viewYRange[0] + state.viewYRange[1]) / 2;
+      const yHalf = ((state.viewYRange[1] - state.viewYRange[0]) / 2) * factor;
+
+      state.viewXRange = [xCenter - xHalf, xCenter + xHalf];
+      state.viewYRange = [yCenter - yHalf, yCenter + yHalf];
+      state.viewRevision++;
+      updateVisualization();
+    }
+
+    // DSE Challenge Quiz Mode Engine
+    function switchMode(newMode) {
+      state.mode = newMode;
+      const quizPanel = document.getElementById('quiz-panel');
+      const btnExplore = document.getElementById('btn-mode-explore');
+      const btnQuiz = document.getElementById('btn-mode-quiz');
+
+      if (newMode === 'quiz') {
+        quizPanel.classList.remove('hidden');
+        btnQuiz.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-amber-500 text-white shadow-sm flex items-center gap-1.5";
+        btnExplore.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5";
+        if (!state.quizTarget) generateQuizTarget();
+      } else {
+        quizPanel.classList.add('hidden');
+        btnExplore.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-brand-600 text-white shadow-sm flex items-center gap-1.5";
+        btnQuiz.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5";
+      }
+      updateVisualization();
+    }
+
+    function generateQuizTarget() {
+      const solBox = document.getElementById('quiz-solution-box');
+      if (solBox) solBox.classList.add('hidden');
+
+      const aOpts = [-2, -1, -0.5, 0.5, 1, 2];
+      const bOpts = [-1, 1, 2];
+      const hOpts = [-4, -2, 0, 2, 4];
+      const kOpts = [-3, -1, 0, 2, 3];
+
+      state.quizTarget = {
+        a: aOpts[Math.floor(Math.random() * aOpts.length)],
+        b: bOpts[Math.floor(Math.random() * bOpts.length)],
+        h: hOpts[Math.floor(Math.random() * hOpts.length)],
+        k: kOpts[Math.floor(Math.random() * kOpts.length)],
+        baseFunc: state.baseFunc,
+        angleUnit: state.angleUnit
+      };
+
+      updateVisualization();
+    }
+
+    function calculateQuizAccuracy() {
+      if (!state.quizTarget) return;
+      const target = state.quizTarget;
+      const diffA = Math.abs(state.a - target.a);
+      const diffB = Math.abs(state.b - target.b);
+      const diffH = Math.abs(state.h - target.h);
+      const diffK = Math.abs(state.k - target.k);
+
+      const totalDiff = diffA + diffB + diffH + diffK;
+      const accuracy = Math.max(0, Math.round(100 - totalDiff * 15));
+      const scoreElem = document.getElementById('quiz-match-score');
+      scoreElem.innerText = `${accuracy}%`;
+
+      if (accuracy >= 98) {
+        scoreElem.className = "text-emerald-600 font-bold text-lg flex items-center gap-1";
+        scoreElem.innerHTML = `<i class="fa-solid fa-circle-check"></i> 100% Perfect Match!`;
+      } else {
+        scoreElem.className = "text-brand-600 font-bold text-lg";
+      }
+    }
+
+    function revealQuizSolution() {
+      if (!state.quizTarget) return;
+      const solutionTex = generateLaTeX(state.quizTarget);
+      const solBox = document.getElementById('quiz-solution-box');
+      const katexElem = document.getElementById('quiz-solution-katex');
+      
+      if (solBox && katexElem) {
+        katex.render(solutionTex, katexElem, { displayMode: true, throwOnError: false });
+        solBox.classList.remove('hidden');
+      }
+    }
+
+    function toggleHelpModal() {
+      const modal = document.getElementById('help-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    // Automatic KaTeX Renderer for all $...$ expressions in dynamic text
+    function renderKaTeXMathInDOM() {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // DOM Initializer
+    window.addEventListener('DOMContentLoaded', () => {
+      onFunctionChange();
+
+      // Initial auto-render of all static math expressions in DOM
+      renderKaTeXMathInDOM();
+
+      // Auto resize graph on window resize
+      window.addEventListener('resize', () => {
+        Plotly.Plots.resize('graph-container');
+      });
+    });
+  </script>
+</body>
+</html>
